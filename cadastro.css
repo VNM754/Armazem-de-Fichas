@@ -1,0 +1,31 @@
+.cadastro__conjunto{    
+    margin: 2px;
+}
+
+.cadastro__conjunto{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.cadastro__botao {
+    background-color: var(--cor-de-fundo-secundaria);
+    color: var(--cor-primaria);
+    font-size: 1.2em;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 1em;
+    width: 100%;
+}
+
+
+@media screen and (min-width: 1024px) {
+    
+}
+
+@media screen and (min-width: 1440px) {
+    .cadastro__botao {
+    width: 30vw;
+}
+}

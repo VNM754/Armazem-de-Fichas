@@ -1,0 +1,59 @@
+.criar-fichas__botoes{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.criar-fichas__titulo{
+    color: var(--cor-primaria);
+    font-size: 1em;
+    text-align: center;
+}
+
+.criar-ficha-body{
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+}
+
+.criar-ficha-imagem-input{
+    width: 100vw;
+}
+
+.criar-ficha-elemento{
+    margin-left: 1em;
+}
+
+.criar-ficha-secao{ 
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.criar-ficha-Atributos{
+    display: flex;
+    flex-direction: column;
+}
+
+.criar-ficha-input-atributos{
+    position: left;
+}
+
+.criar-ficha-atributo-input{
+    width: 50vw;
+}
+
+.criar-ficha-pericias-individual{
+    border-top: 0.1em dotted var(--cor-primaria);
+}
+
+input[type=file]::file-selector-button {
+  background-color: var(--cor-primaria);
+    border: none;
+    color: var(--cor-de-fundo);
+    padding: 1em 2em;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    font-size: 0.8em;
+    margin: 0.5em 35vw;
+}

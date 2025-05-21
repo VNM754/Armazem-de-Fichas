@@ -1,0 +1,16 @@
+@import url("../styles/login.css");
+@import url("../styles/header.css");
+@import url("../styles/menu.css");
+@import url("../styles/footer.css");
+@import url("../styles/carrossel.css");
+@import url("../styles/cadastro.css");
+@import url("../styles/criarFicha.css");
+@import url("../styles/fichas.css");
+
+:root{
+    --cor-de-fundo: #EFE3C2;
+    --cor-de-fundo-secundaria: #CCCC99;
+    --cor-da-borda: #123524;
+    --cor-primaria: #3E7B27;
+    background-color: var(--cor-de-fundo);
+}

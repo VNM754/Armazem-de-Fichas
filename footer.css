@@ -1,0 +1,22 @@
+hr {
+    margin: 0;
+}
+.rodape{
+    background-color: var(--cor-de-fundo-secundaria );
+    border-style: solid;
+    width: 100%;
+    position: relative;
+    bottom: 0.1em;
+}
+
+.rodape__texto {
+    color: var(--cor-primaria);
+    font-size: 1em;
+    text-align: center;
+}
+
+@media screen and (min-width: 1024px) {
+    .rodape__texto{
+        font-size: 2em;
+    }
+}

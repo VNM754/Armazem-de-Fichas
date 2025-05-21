@@ -1,0 +1,103 @@
+.login {
+    background-color: var(--cor-de-fundo-secundaria);
+    display: flex;
+    text-align: center;
+    flex-direction: column;
+    margin: 50% 9%;
+    padding: 3% 2% 10%;
+    border: 2px;
+    border-style: solid;
+    border-color: var(--cor-da-borda);
+    border-radius: 15px;
+}
+
+.login__body {
+    background-color: var(--cor-de-fundo);
+    background-image: url("../images/D20 2.png");
+    background-position: center;
+    background-size: 100%;
+    background-repeat: no-repeat;
+}
+
+.login__titulo {
+    color: var(--cor-primaria);
+    font-size: 1em;
+    padding: 0% 5%;
+    margin-bottom: 0.625em;
+    text-align: center;
+}
+
+.login__texto {
+    color: var(--cor-primaria);
+    font-size: 1em;
+    padding: 0% 0%;
+    margin-bottom: 0.625em;
+}
+
+.login__conjunto {
+    margin-bottom: 1em;
+    display: flex;
+    justify-content: center;
+}
+
+.login__botao {
+    background-color: var(--cor-de-fundo-secundaria);
+    color: var(--cor-primaria);
+    font-size: 1.4em;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 2em;
+    width: 50vw;
+}
+
+.login__textbox{
+    width: 40vw;
+    font-size: 1em;
+    color: var(--cor-primaria);
+}
+
+.login__link{
+    text-decoration: none;
+    color: var(--cor-primaria);
+}
+
+@media screen and (min-width: 1024px) {
+    .login {
+        margin: 30% 30%;
+    }
+
+    .login__titulo {
+        font-size: 1.5em;
+    }
+
+    .login__texto {
+        font-size: 1.5em;
+    }
+
+    .login__textbox{
+        width: 30vw;
+        font-size: 2em;
+        color: var(--cor-primaria);
+    }
+}
+
+@media screen and (min-width: 1440px) {
+    .login {
+        margin: 30% 30%;
+    }
+
+    .login__titulo {
+        font-size: 2em;
+    }
+
+    .login__texto {
+        font-size: 2em;
+    }
+    
+    .login__textbox{
+        width: 50vw;
+        font-size: 2em;
+        color: var(--cor-primaria);
+    }
+}

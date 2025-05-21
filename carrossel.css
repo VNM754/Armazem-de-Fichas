@@ -1,0 +1,44 @@
+.carrossel__titulo{
+    color: var(--cor-primaria);
+    background-color: var(--cor-de-fundo-secundaria);
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.swiper-slide {
+    width: 100vw;
+}
+
+.swiper-button-prev,
+.swiper-button-next {
+    display: none;
+}
+
+.swiper-pagination {
+    position: initial;
+    margin: 0.5em 0;
+    --swiper-pagination-color: var(--cor-primaria);
+}
+
+.swiper-imagem{
+    width: 8em;
+    height: 8em;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+@media screen and (min-width: 1024px) {
+    .swiper-imagem{
+        width: 20em;
+        height: 20em;
+        object-fit: cover;
+    }
+}
+
+@media screen and (min-width: 1440px) {
+    .swiper-imagem{
+        width: 20em;
+        height: 20em;
+        object-fit: cover;
+    }
+}
