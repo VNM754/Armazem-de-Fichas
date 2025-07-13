@@ -20,8 +20,18 @@
     width: 100vw;
 }
 
+.criar-ficha-input{
+    background-color: var(--cor-da-borda);
+    color: var(--cor-de-fundo-secundaria);
+    border: none;
+    field-sizing: content;
+    min-height: 2rem;
+    padding-left: 0.4em;
+}
+
 .criar-ficha-elemento{
-    margin-left: 1em;
+    width: 100%;
+    max-width: 100%;
 }
 
 .criar-ficha-secao{ 
@@ -55,5 +65,13 @@ input[type=file]::file-selector-button {
     text-decoration: none;
     display: block;
     font-size: 0.8em;
-    margin: 0.5em 35vw;
+    width: 100%;
+}
+
+
+@media screen and (min-width: 1440px) {
+    input[type=file]::file-selector-button {
+        
+    
+    }
 }

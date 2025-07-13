@@ -26,6 +26,7 @@
     background-color: var(--cor-de-fundo-secundaria);
     color: var(--cor-primaria);
     margin-top: 0.2em;
+    text-align: center;
 }
 
 .ficha-T20-cabecalho-textarea{
@@ -51,6 +52,7 @@
 .ficha-T20-cabecalho-select{
     color: var(--cor-de-fundo-secundaria);
     background-color: var(--cor-da-borda);
+    padding: 0.3em;
 }
 
 .ficha-T20-valores-textbox{
@@ -75,7 +77,7 @@
     flex-direction: row;
 }
 
-.ficha-T20-atributos-lista, .ficha-T20-pericias-lista, .ficha-T20-ataques-lista{
+.ficha-T20-atributos-lista, .ficha-T20-pericias-lista, .ficha-T20-ataques-lista, .ficha-T20-poderes-lista, .ficha-T20-magias-lista, .ficha-T20-equipamentos-lista{
     display: none;
 }
 
@@ -90,6 +92,8 @@
 .ficha-T20-atributos-text{
     color: var(--cor-primaria);
     font-size: 1em;
+    margin: auto 0;
+    text-align: center;
 }
 
 .ficha-T20-atributos-individual{
@@ -120,7 +124,8 @@
     text-align: center;
 }
 
-.ficha-T20-pericias-liberar:checked~.ficha-T20-pericias-lista, .ficha-T20-pericias-liberar:checked~.ficha-T20-pericias-container{
+.ficha-T20-pericias-liberar:checked~.ficha-T20-pericias-lista, .ficha-T20-pericias-liberar:checked~.ficha-T20-pericias-container, 
+.ficha-T20-poderes-liberar:checked~.ficha-T20-poderes-lista, .ficha-T20-ataques-liberar:checked~.ficha-T20-ataques-lista, .ficha-T20-magias-liberar:checked~.ficha-T20-magias-lista, .ficha-T20-equipamentos-liberar:checked~.ficha-T20-equipamentos-lista{
     display: block;
 }
 
@@ -142,20 +147,21 @@
 
 .ficha-T20-ataques-lista-item{
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+    flex-direction: column;
     border: 0.1em solid var(--cor-primaria);
+    width: auto;
 }
 
 .ficha-botao{
-    background-color: var(--cor-de-fundo);
+    background-color: var(--cor-da-borda);
     border: none;
-    color: var(--cor-primaria);
+    color: var(--cor-de-fundo);
     padding: 1em 2em;
     text-align: center;
     text-decoration: none;
     display: block;
     font-size: 0.8em;
+    width: 100%;
 }
 
 .ficha-T20-btn-add-classes{
@@ -174,6 +180,25 @@
     display: flex;
     flex-direction: row;
 }
+
+.ficha-T20-poderes-item
+{
+    display: flex;
+    flex-direction: column;
+}
+
+.ficha-T20-poder-titulo
+{
+    text-align: center;
+}
+
+.ficha-T20-poder-texto{
+    font-style: italic;
+    text-align: center;
+}
+
+
+
 @media screen and (min-width: 1024px) {
     
 }
@@ -187,101 +212,7 @@
         font-size: 2.5em;
     }
 
-    .ficha-T20-valores-textbox,.ficha-T20-cabecalho-select{
+    .ficha-T20-valores-textbox,.ficha-T20-cabecalho-select,.ficha-T20-atributos-text{
         font-size: 1.5em;
-    }
-}
-@media print {
-    body {
-        background-color: white !important;
-        color: black !important;
-        font-family: 'Arial', sans-serif;
-        font-size: 14px;
-        margin: 0;
-    }
-
-    * {
-        box-shadow: none !important;
-        text-shadow: none !important;
-    }
-
-    button, 
-    .ficha-botao,
-    .ficha-T20-btn-add-classes,
-    input[type="text"],
-    input[type="number"],
-    input[type="checkbox"],
-    select,
-    textarea {
-        display: none !important;
-    }
-
-    .ficha__T20 {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        margin: 0 auto;
-        padding: 20px;
-    }
-
-    .ficha-T20-cabecalho {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-
-    .ficha-T20-cabecalho-textboxes,
-    .ficha-T20-cabecalho-valores {
-        background-color: transparent !important;
-        width: 100%;
-        padding: 10px 0;
-    }
-
-    .ficha-T20-cabecalho-label,
-    .ficha-T20-atributos-text,
-    .ficha-T20-pericias-lista-item label {
-        color: black !important;
-    }
-
-    .ficha-T20-atributos-individual,
-    .ficha-T20-pericias-lista-item,
-    .ficha-T20-ataques-lista-item {
-        border: 1px solid #000 !important;
-        padding: 5px;
-        margin: 5px 0;
-    }
-
-    .ficha-T20-atributos-lista,
-    .ficha-T20-pericias-lista,
-    .ficha-T20-ataques-lista {
-        display: flex !important;
-        flex-wrap: wrap;
-        gap: 10px;
-        justify-content: space-between;
-    }
-
-    .ficha-T20-atributos-individual {
-        width: 120px !important;
-    }
-
-    .ficha-T20-atributos-valor {
-        font-size: 1.5em !important;
-    }
-
-    .ficha-T20-cabecalho-textbox::placeholder,
-    .ficha-T20-valores-textbox::placeholder {
-        display: none;
-    }
-
-    .ficha-T20-Imagem {
-        margin: 0 auto;
-        display: block;
-        width: 150px !important;
-        height: auto !important;
-    }
-
-    /* Evita quebra feia entre blocos */
-    .grupo, .ficha__T20 > div {
-        page-break-inside: avoid;
     }
 }
