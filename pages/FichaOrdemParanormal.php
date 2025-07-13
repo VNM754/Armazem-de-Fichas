@@ -1,11 +1,14 @@
 <?php
-
     require "../src/conecction.php";
     require "../src/model/usuario.php";
-    require "../src/model/ficha.php";
     require "../src/repository/usuarioRepository.php";
+    require "../src/model/ficha.php";
     require "../src/repository/fichaRepository.php";
     require "../src/repository/classeRepository.php";
+    require "../src/repository/poderesRepository.php";
+    require "../src/repository/origemRepository.php";
+    require "../src/repository/equipamentoRepository.php";
+    require "../src/repository/magiasRepository.php";
 
     session_start();
     $pdo = conectar();
@@ -13,21 +16,26 @@
     $usuarioRepository = new usuarioRepository($pdo);
     $fichaRepository = new fichaRepository($pdo);
     $classeRepository = new classRepository($pdo);
+    $poderesRepository = new poderesRepository($pdo);
+    $equipamentosRepository = new equipamentoRepository($pdo);
+    $magiasRepository = new magiasRepository($pdo);
     $fichaAtual = $fichaRepository->buscarPorID($_GET["id_ficha"]);
+    $id_sistema = $fichaAtual->getSistema();
     $usuario = $usuarioRepository->buscarPorID($_SESSION['id_usuario']);
     $fichas = $fichaRepository->buscarTodos($usuario);
-    $classes = $classeRepository->buscarClassesPorSistema($fichaAtual->getSistema(),$pdo);
-    
-    $id_sistema = $fichaAtual->getSistema();
+    $classes = $classeRepository->buscarClassesPorSistema($id_sistema,$pdo);
+    $equipamentosFicha = $equipamentosRepository->buscarEquipamentosDaFicha($fichaId, $pdo);
+    $poderesFicha = $poderesRepository->buscarPoderesDaFicha($fichaId, $pdo);
     $atributos = $fichaRepository->buscarAtributos($fichaAtual->getId(), $pdo);
     $classesDaFicha = $fichaRepository->buscarClassesDaFicha($fichaAtual->getId(), $pdo);
     $periciasMarcadas = array_map('trim', explode(',', $fichaAtual->getPericias()));
-    $pericias = $fichaRepository->definirPericias($fichaAtual->getSistema());
+    $pericias = $fichaRepository->definirPericias($id_sistema);
+    $magias = $magiasRepository->buscarMagiasDaFicha($fichaId, $pdo);
     
     $racas = $pdo->prepare("SELECT * FROM racas WHERE sistema_id = :id_sistema");
     $racas->execute([':id_sistema' => $id_sistema]);
     $racas = $racas->fetchAll(PDO::FETCH_ASSOC);
-
+    
     $origens = $pdo->prepare("SELECT * FROM origens WHERE sistema_id = :id_sistema");
     $origens->execute([':id_sistema' => $id_sistema]);
     $origens = $origens->fetchAll(PDO::FETCH_ASSOC);
@@ -36,6 +44,7 @@
     $manaMaximo = 0;
     $nivelTotal = 0;
     $classesExistentes = 0;
+    $modificadores = [];
     
     foreach ($atributos as $atributo) {
         if ($atributo['nome'] == 'VIG') {
@@ -53,6 +62,16 @@
         }
         return true;
     });
+    
+    foreach ($classesDaFicha as $classe) {
+        $nivelTotal += $classe['nivel'];
+    }
+
+    
+    foreach ($atributos as $atributo) {
+        $modificadores[$atributo['nome']] = floor(($atributo['valor']-10)/2);
+    }
+
 
 ?>
 
@@ -131,7 +150,7 @@
                                 <?= " - " . $classe['nome_classe']?>
                             </span> <br>
                             <input type="hidden" name="classes_existentes_ids[]" value="<?=$classe['classe_id']?>">
-                            <input class="ficha-T20-cabecalho-textbox ficha-t20-classes-nivel" type="number" name="niveis[<?=$classe['classe_id']?>]" min="1" value="<?= $classe['nivel']?>">
+                            <input class="ficha-T20-cabecalho-textbox ficha-t20-classes-nivel" type="number" name="niveis[<?=$classe['classe_id']?>]" min="1" value="<?= $classe['nivel']?>" onmousewheel>
                             <button class="ficha-T20-btn-add-classes" type="button" id="btn-Add-Classe">
                                 <i class="fa-solid fa-circle-plus fa-xl ficha-T20-cabecalho-delete" alt="Adicionar Classe" onclick="adicionarCampoClasse()"></i>
                             </button>
@@ -173,7 +192,7 @@
                                     </div>
 
                                     <label for="nivel[]">Nível:</label>
-                                    <input class="ficha-T20-valores-textbox" type="number" name="nivel_nova_classe[]" min="1" value="1">
+                                    <input class="ficha-T20-valores-textbox" type="number" name="nivel_nova_classe[]" min="1" value="1" onmousewheel>
                                 `;
 
                                 div.innerHTML = selectHTML;
@@ -191,7 +210,7 @@
                 <section class="ficha-T20-cabecalho-valores">
                     <label class="ficha-T20-cabecalho-label">Pontos de Vida:</label>
                         <p>
-                            <input name="pv_atual" class="ficha-T20-valores-textbox" type="number" placeholder="" value="<?= ($fichaRepository->buscarPV($fichaAtual->getId())) ? ($fichaRepository->buscarPV($fichaAtual->getId())) : 0 ?>" ><label class="ficha-T20-cabecalho-label">
+                            <input name="pv_atual" class="ficha-T20-valores-textbox" type="number" placeholder="" value="<?= ($fichaRepository->buscarPV($fichaAtual->getId())) ? ($fichaRepository->buscarPV($fichaAtual->getId())) : 0 ?>" onmousewheel><label class="ficha-T20-cabecalho-label">
                                 <?php
                                 foreach ($classesDaFicha as $classe) {
                                     $dadoVida = intval($classe['dado_vida']);
@@ -208,7 +227,7 @@
                                     }
                                 }
                                 foreach ($atributos as $atributo) {
-                                    if ($atributo['nome'] == "CON") {
+                                    if ($atributo['nome'] == "VIG") {
                                         echo "/".(($vidaMaxima + ($vidaMaxima/4)*$nivelTotal) + ($nivelTotal*$modificadorVida));
                                     }
                                 }
@@ -217,11 +236,16 @@
                         </p>
                     <label class="ficha-T20-cabecalho-label">Pontos de Mana:</label>
                         <p>
-                            <input name="pm_atual" class="ficha-T20-valores-textbox" type="number" placeholder="" value="<?= ($fichaRepository->buscarPM($fichaAtual->getId())) ? ($fichaRepository->buscarPM($fichaAtual->getId())) : 0 ?>"><label class="ficha-T20-cabecalho-label">
+                            <input name="pm_atual" class="ficha-T20-valores-textbox" type="number" placeholder="" value="<?= ($fichaRepository->buscarPM($fichaAtual->getId())) ? ($fichaRepository->buscarPM($fichaAtual->getId())) : 0 ?>" onmousewheel><label class="ficha-T20-cabecalho-label">
                                 <?php
                                 foreach ($classesDaFicha as $classe) {
                                     $manaClasse = $fichaRepository->buscarPMPorClasseENivel($pdo,$classe['classe_id'],1);
                                     $manaMaximo += $manaClasse*$classe['nivel'];
+                                    foreach ($atributos as $atributo) {
+                                        if ($atributo['nome'] == "PRE") {
+                                            $manaMaximo += $atributo['valor'];
+                                        }
+                                    }
                                 }
 
                                 echo "/" . $manaMaximo;
@@ -245,7 +269,7 @@
                     <li class="ficha-T20-atributos-lista-atributo">
                         <section class="ficha-T20-atributos-individual">
                             <p class="ficha-T20-atributos-nome ficha-T20-atributos-text"><?= $atributo['nome']?></p><br><br>
-                            <p class="ficha-T20-atributos-valor ficha-T20-atributos-text"><?= $modificador = floor(($atributo['valor'])-10)/2?></p>
+                            <p class="ficha-T20-atributos-valor ficha-T20-atributos-text"><?= ($atributo['valor'])?></p>
                             <input type="text" name="atributos[<?= $atributo['nome']?>]" class="ficha-T20-atributos-input" value="<?= $atributo['valor']?>">
                     </section>
                     </li>
@@ -277,12 +301,12 @@
                                         <label>
                                             <?php 
                                             if (in_array($pericia, $periciasMarcadas)) {
-                                                echo $fichaRepository->calcularValorPericia($pericia,$fichaAtual->getId()) + $fichaRepository->calcularBonusDeTrei($fichaAtual->getId());
-                                            } else echo $fichaRepository->calcularValorPericia($pericia,$fichaAtual->getId());
+                                                echo $fichaRepository->calcularBonusDeTreiOP($fichaAtual->getId());
+                                            } else 0;
                                             ?>
                                         </label>
                                         <select name="atributo_pericia[<?= $pericia?>]" id="" class="ficha-T20-cabecalho-select">
-                                            <?php $atributoPadrao = $fichaRepository->definirAtributoPericias($pericia);
+                                            <?php $atributoPadrao = $fichaRepository->definirAtributoPericiasOP($pericia);
                                             foreach ($atributos as $atributo):?>
                                                 <option value="<?= $atributo['nome']?>" <?= $atributo['nome'] == $atributoPadrao ? 'selected': ''?>>
                                                     <?= $atributo['nome']?>
@@ -299,6 +323,7 @@
             <hr class="barra__divisora">
     
             <section class="ficha-T20-Ataques">
+                <section class="ficha-T20-Ataques">
                 <input type="checkbox" id="T20-ataques" class="ficha-T20-ataques-liberar">
                 <label for="T20-ataques">
                     <h2 class="menu__titulo">
@@ -306,13 +331,22 @@
                     </h2>
                 </label>
                 <ul class="ficha-T20-ataques-lista">
-                    <li class="ficha-T20-ataques-lista-item">
-                        <img src="" alt="" class="ficha-T20-ataques-lista-item-imagem">
-                        <p class="ficha-T20-ataques-lista-item-titulo">Espada Longa</p>
-
-                    </li>
-
-                </ul>
+                        <?php foreach ($equipamentosFicha as $equipamento): ?>
+                            <?php if ($equipamento['tipo'] == "arma") :?>
+                            <li class="ficha-T20-ataques-lista-item">
+                                <div class="ficha-T20-poderes-item">
+                                    <label class="ficha-T20-cabecalho-label ficha-T20-poder-titulo"><?=$equipamento['nome']?></label>
+                                        <hr class="barra__divisora">
+                                    <label class="ficha-T20-cabecalho-label ficha-T20-poder-texto">
+                                        <?php $detalhes = json_decode($equipamento['detalhes'], true);
+                                        echo "Dano: " . $detalhes['dano'] . ". - Tipo de Dano: " . $detalhes['tipo']; 
+                                        ?></label>
+                                    <label class="ficha-T20-cabecalho-label ficha-T20-poder-texto"><?= "Descrição: " . $equipamento['descricao']?></label>
+                                </div>
+                            </li>
+                            <?php endif;?>
+                        <?php endforeach; ?>
+                    </ul>
             </section>
             <hr class="barra__divisora">
             
@@ -323,8 +357,66 @@
                         poderes
                     </h2>
                 </label>
+                <ul class="ficha-T20-poderes-lista">
+                    <label for="T20-poderes">
+                    <h2 class="menu__titulo">
+                        Habilidades de Raça
+                    </h2>
+                </label>
+                    <?php $poderes = $poderesRepository->buscarPoderesDaRaca($fichaAtual->getRaca(),$pdo)?>
+                    <?php foreach ($poderes as $poder): ?>
+                        <li class="ficha-T20-poderes-lista-item">
+                            <div class="ficha-T20-poderes-item">
+                                <label class="ficha-T20-cabecalho-label ficha-T20-poder-titulo">
+                                    <?=$poder['nome']?>
+                                </label>
+                                <hr class="barra__divisora">
+                                <label class="ficha-T20-cabecalho-label ficha-T20-poder-texto"><?= $poder['descricao']?></label>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>    
+                <hr class="barra__divisora">
+                    <label for="T20-poderes">
+                    <h2 class="menu__titulo">
+                        Habilidades de Classe
+                    </h2>
+                </label>
+                    <?php foreach ($classesDaFicha as $classe): ?>
+                        <?php $poderes = $poderesRepository->buscarPoderesDaClasse($classe['classe_id'], $pdo)?>
+                        <?php foreach ($poderes as $poder): ?>
+                        <li class="ficha-T20-poderes-lista-item">
+                            <div class="ficha-T20-poderes-item">
+                                <label class="ficha-T20-cabecalho-label ficha-T20-poder-titulo">
+                                    <?=$poder['nome']?>
+                                </label>
+                                <hr class="barra__divisora">
+                                <label class="ficha-T20-cabecalho-label ficha-T20-poder-texto"><?= $poder['descricao']?></label>
+                            </div>
+                        </li>
+                        <?php endforeach; ?>
+                    <?php endforeach; ?>
+                    <hr class="barra__divisora">
+                    <label for="T20-poderes">
+                    <h2 class="menu__titulo">
+                        poderes Gerais
+                    </h2>
+                </label>
+                    <?php foreach ($poderesFicha as $poder): ?>
+                        <li class="ficha-T20-poderes-lista-item">
+                            <div class="ficha-T20-poderes-item">
+                                <label class="ficha-T20-cabecalho-label ficha-T20-poder-titulo">
+                                    <?=$poder['nome']?>
+                                </label>
+                                <hr class="barra__divisora">
+                                <label class="ficha-T20-cabecalho-label ficha-T20-poder-texto"><?= $poder['descricao']?></label>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
             </section>
             <hr class="barra__divisora">
+
+
     
             <section class="ficha-T20-Magias">
                 <input type="checkbox" id="T20-magias" class="ficha-T20-magias-liberar">
@@ -333,6 +425,18 @@
                         magias
                     </h2>
                 </label>
+                <ul class="ficha-T20-magias-lista">
+                    <?php foreach ($magias as $magia): ?>
+                        <li class="ficha-T20-magias-lista-item">
+                            <div class="ficha-T20-poderes-item">
+                                <label class="ficha-T20-cabecalho-label ficha-T20-poder-titulo"><?=$magia['nome']?></label>
+                            </div>
+                            <hr class="barra__divisora">
+                            <label class="ficha-T20-cabecalho-label ficha-T20-poder-texto"><?= $magia['nivel'] . "º Círculo. Escola: " . $magia['escola'] ?></label><br>
+                            <label class="ficha-T20-cabecalho-label ficha-T20-poder-texto"><?= $magia['descricao']?></label>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
             </section>
             <hr class="barra__divisora">
     
@@ -343,6 +447,20 @@
                         equipamentos
                     </h2>
                 </label>
+                <ul class="ficha-T20-equipamentos-lista">
+                        <?php foreach ($equipamentosFicha as $equipamento): ?>
+                            <?php if ($equipamento['tipo'] != "arma") :?>
+                            <li class="ficha-T20-poderes-lista-item">
+                                <div class="ficha-T20-poderes-item">
+                                    <label class="ficha-T20-cabecalho-label ficha-T20-poder-titulo"><?=$equipamento['nome']?></label>
+                                        <hr class="barra__divisora">
+                                    <label class="ficha-T20-cabecalho-label ficha-T20-poder-texto"><?=$equipamento['descricao']?></label>
+                                    <hr class="barra__divisora">
+                                </div>
+                            </li>
+                            <?php endif;?>
+                        <?php endforeach; ?>
+                    </ul>
             </section>
             <hr class="barra__divisora">
             <input type="hidden" name="data" value="<?= date("Y-m-d h:m:s")?>">

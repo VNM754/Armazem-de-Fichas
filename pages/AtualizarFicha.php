@@ -17,10 +17,10 @@
     $classeRepository = new classRepository($pdo);
 
 
-    var_dump($_POST);
+    // print_r($_POST);
 
     $ficha_id = $_POST['ficha_id'];
-    $nome = $_POST['nome-personagem'] ?? '';
+    $nome_personagem = $_POST['nome-personagem'] ?? '';
     $raca = $_POST['raca-personagem'];
     $origem = $_POST['origem-personagem'] ?? '';
     $pv_atual = $_POST['pv_atual'] ?? null;
@@ -68,9 +68,8 @@
     $periciasTexto = implode(', ', $periciasSelecionadas);
 
     // Atualiza ficha principal
-    $fichaRepository->AtualizarFicha($ficha_id, $nome, $origem, $pv_atual, $pm_atual, $periciasTexto, $data_nova, $pdo);
+    $fichaRepository->AtualizarFicha($ficha_id, $nome_personagem,$raca, $origem, $pv_atual, $pm_atual, $periciasTexto, $data_nova, $pdo);
     $check = $fichaRepository->atualizarAtributos($ficha_id,$atributos,$pdo);
-    var_dump($check, $atributos);
 
     if (isset($classes_existentes_ids)) {
         for ($i=0; $i < sizeof($classes_existentes_ids); $i++) {
@@ -79,29 +78,6 @@
     }
 
 
-    // Atualiza classes
-    if (!empty($_POST['classes'])) {
-        // Remove classes antigas da ficha
-        $pdo->prepare("DELETE FROM ficha_classes WHERE ficha_id = :ficha_id")
-            ->execute([':ficha_id' => $ficha_id]);
-
-        // Insere classes novas
-        foreach ($_POST['classes'] as $classe) {
-            if (!empty($classe['id']) && !empty($classe['nivel'])) {
-                $sqlClasse = "INSERT INTO ficha_classes (ficha_id, classe_ou_kit_id, nivel, inicial)
-                            VALUES (:ficha_id, :classe_id, :nivel, :inicial)";
-                $stmtClasse = $pdo->prepare($sqlClasse);
-                $stmtClasse->execute([
-                    ':ficha_id' => $ficha_id,
-                    ':classe_id' => $classe['id'],
-                    ':nivel' => $classe['nivel'],
-                    ':inicial' => $classe['inicial'] ?? 0
-                ]);
-            }
-        }
-    }
-
-    // Redireciona ou exibe mensagem
     $sistema_id = $fichaRepository->buscarSistemaIdFicha($ficha_id);
     switch ($sistema_id) {
         case 1:

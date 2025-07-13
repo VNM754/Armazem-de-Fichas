@@ -136,7 +136,7 @@
                                 <?= " - " . $classe['nome_classe']?>
                             </span> <br>
                             <input type="hidden" name="classes_existentes_ids[]" value="<?=$classe['classe_id']?>">
-                            <input class="ficha-T20-cabecalho-textbox ficha-t20-classes-nivel" type="number" name="niveis[<?=$classe['classe_id']?>]" min="1" value="<?= $classe['nivel']?>">
+                            <input class="ficha-T20-cabecalho-textbox ficha-t20-classes-nivel" type="number" name="niveis[<?=$classe['classe_id']?>]" min="1" value="<?= $classe['nivel']?>" onmousewheel>
                             <button class="ficha-T20-btn-add-classes" type="button" id="btn-Add-Classe">
                                 <i class="fa-solid fa-circle-plus fa-xl ficha-T20-cabecalho-delete" alt="Adicionar Classe" onclick="adicionarCampoClasse()"></i>
                             </button>
@@ -166,7 +166,7 @@
                                  <label>Espaços de Feitiço por Nível:</label><br>
                                  ${[...Array(9)].map((_, i) => `
                                         <label for="feitico_nivel_${i+1}">Nível ${i+1}:</label>
-                                        <input class="ficha-T20-valores-textbox" type="number" min="0" name="espacos_feitico[${i+1}]" id="feitico_nivel_${i+1}" placeholder="0"><br>
+                                        <input class="ficha-T20-valores-textbox" type="number" min="0" name="espacos_feitico[${i+1}]" id="feitico_nivel_${i+1}" placeholder="0" onmousewheel><br>
                                     `).join('')}
                                 </div>`;
 
@@ -189,7 +189,7 @@
                                     </div>
 
                                     <label for="nivel[]">Nível:</label>
-                                    <input class="ficha-T20-valores-textbox" type="number" name="nivel_nova_classe[]" min="1" value="1">
+                                    <input class="ficha-T20-valores-textbox" type="number" name="nivel_nova_classe[]" min="1" value="1" onmousewheel>
                                 `;
 
                                 div.innerHTML = selectHTML;
@@ -211,7 +211,7 @@
                 <section class="ficha-T20-cabecalho-valores">
                     <label class="ficha-T20-cabecalho-label">Pontos de Vida:</label>
                         <p>
-                            <input name="pv_atual" class="ficha-T20-valores-textbox" type="number" placeholder="" value="<?= ($fichaRepository->buscarPV($fichaAtual->getId())) ? ($fichaRepository->buscarPV($fichaAtual->getId())) : 0 ?>" ><label class="ficha-T20-cabecalho-label">
+                            <input name="pv_atual" class="ficha-T20-valores-textbox" type="number" placeholder="" value="<?= ($fichaRepository->buscarPV($fichaAtual->getId())) ? ($fichaRepository->buscarPV($fichaAtual->getId())) : 0 ?>" onmousewheel><label class="ficha-T20-cabecalho-label">
                                 <?php
                                 foreach ($classesDaFicha as $classe) {
                                     if (strlen($classe['dado_vida']) == 3) {
@@ -255,6 +255,7 @@
                                                     min="0"
                                                     class="ficha-T20-valores-textbox"
                                                     value="<?= $espacos_feitico[$nivel]?>"
+                                                    onmousewheel
                                                     <?= $desativado ?>
                                                 />
                                                 <label class="ficha-T20-cabecalho-label" <?= $desativado ?>>/<?= $valorMax ?></label>

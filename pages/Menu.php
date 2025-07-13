@@ -28,7 +28,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XXX - Menu</title>
+    <title>Armazém de Fichas - Menu</title>
     <link rel="stylesheet" href="../reset.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
     <link rel="stylesheet" href="../style.css">
@@ -161,7 +161,7 @@
                 <a href="<?php echo "../pages/Ficha" . $fichaRepository->buscarSistemaNome($ficha->getId()) . ".php?id_ficha=" . $ficha->getId() ?>" class="menu-fichas__link">
                     <p class="menu-fichas__titulo"><?= $ficha->getNome()?></p>
                 </a>
-                <a href="">
+                <a href="<?= "../pages/ExcluirFicha.php?ficha_id=". $ficha->getId()?>">
                     <i class="fa-solid fa-circle-xmark fa-xl menu-fichas__excluir" alt="Excluir Ficha"></i>
                 </a>
             </div>

@@ -58,7 +58,7 @@
         <h2 class="login__titulo"> Alterar Informações do Usuário:</h2>
 
 
-        <form method="post">
+        <form action="..\pages\AtualizarPerfil.php" method="post">
             <div class="login__conjunto">
                 <label class="login__texto" for="login__nome">Nome: </label>
                 <input type="text" name="login__nome" id="login__nome" class="login__textbox" required>
@@ -74,7 +74,7 @@
                 <input type="password" name="login__senha" id="login__senha" class="login__textbox">
             </div>
             <div class="login__conjunto">
-                <input name="login" type="submit" class="login__botao" value="Editar">
+                <input name="update" type="submit" class="login__botao" value="Editar">
             </div>
         </form>
     </section>
