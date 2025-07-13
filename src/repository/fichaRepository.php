@@ -269,6 +269,23 @@ class fichaRepository {
         }
     }
 
+    public function calcularBonusDeTreiOP($ficha_id)
+    {
+        $classes = $this->buscarClassesDaFicha($ficha_id, $this->pdo);
+
+        foreach ($classes as $classe) {
+            $nivel =+ $classe['nivel'];
+        }
+        if ($nivel>1 && $nivel<7) {
+            return +5;
+        }elseif ($nivel>=7 && $nivel<14) {
+            return +10;
+        }elseif ($nivel>=14) {
+            return +15;
+        }
+
+    }
+
     public function buscarPorID(int $id) {
         $sql = "SELECT * FROM fichas WHERE id=id";
         $statement = $this->pdo->query($sql);
@@ -285,6 +302,42 @@ class fichaRepository {
             }
         }
     }
+
+    public function adicionarNovaFicha($usuario_id, $nome, $sistema_id, $imagem_url, $raca_id, $origem_id, $pericias, $pdo) {
+        if (!isset($imagem_url) || $imagem_url == "") {
+            $imagem_url = "imagem.png";
+        }
+        $data_ultimo_acesso = date("Y-m-d h:m:s");
+
+        $sqlVerifica = "SELECT id FROM fichas WHERE sistema_id = :sistema_id AND nome = :nome";
+        $statementVerifica = $pdo->prepare($sqlVerifica);
+        $statementVerifica->bindParam(':sistema_id', $sistema_id, PDO::PARAM_INT);
+        $statementVerifica->bindParam(':nome', $nome, PDO::PARAM_STR);
+        $statementVerifica->execute();
+
+        $fichaExistente = $statementVerifica->fetch(PDO::FETCH_ASSOC);
+
+            if ($fichaExistente) {
+                return $fichaExistente['id'];
+            }
+
+            $sqlFicha = "INSERT INTO fichas (usuario_id, nome, sistema_id, imagem_url, raca_id, origem_id, pericias, data_ultimo_acesso)
+            VALUES (:usuario_id, :nome, :sistema_id, :imagem_url, :raca_id, :origem_id, :pericias, :data_ultimo_acesso)";
+            $statementFicha = $pdo->prepare($sqlFicha);
+            $statementFicha->bindParam('usuario_id', $usuario_id, PDO::PARAM_INT);
+            $statementFicha->bindParam('nome', $nome, PDO::PARAM_STR);
+            $statementFicha->bindParam('sistema_id', $sistema_id, PDO::PARAM_INT);
+            $statementFicha->bindParam('imagem_url', $imagem_url, PDO::PARAM_STR);
+            $statementFicha->bindParam('raca_id', $raca_id, PDO::PARAM_INT);
+            $statementFicha->bindParam('origem_id', $origem_id, PDO::PARAM_INT);
+            $statementFicha->bindParam('pericias', $pericias, PDO::PARAM_STR);
+            $statementFicha->bindParam('data_ultimo_acesso', $data_ultimo_acesso, PDO::PARAM_STR);
+            if ($statementFicha->execute()) {
+                    $novaficha_id = $pdo->lastInsertId();
+                    return $novaficha_id;
+                } else return false;
+    }
+
 
     public function adicionarClasse($ficha_id, $classe_id, $nivel, $inicial, $pdo){
         $sql = "INSERT INTO ficha_classes (ficha_id, classe_ou_kit_id, nivel, inicial)
@@ -304,6 +357,10 @@ class fichaRepository {
         $statement->bindParam(':ficha_id', $ficha_id, PDO::PARAM_INT);
         $statement->bindParam(':origem_id', $origem_id, PDO::PARAM_INT);
         return $statement->execute();
+    }
+
+    public function adicionarAtributos() {
+        
     }
 
     function excluirClasseDeFichaComSeguranca(PDO $pdo, int $ficha_id, int $classe_id, int $usuario_id): bool 
@@ -330,6 +387,44 @@ class fichaRepository {
         
         return $stmt->execute();
     }
+
+    function excluirFichaComSeguranca($pdo, $ficha_id, $usuario_id): bool {
+    // Verifica se a ficha pertence ao usuário
+    $verificaSql = "SELECT COUNT(*) FROM fichas WHERE id = :ficha_id AND usuario_id = :usuario_id";
+    $verificaStmt = $pdo->prepare($verificaSql);
+    $verificaStmt->bindParam(':ficha_id', $ficha_id, PDO::PARAM_INT);
+    $verificaStmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+    $verificaStmt->execute();
+
+    if ($verificaStmt->fetchColumn() == 0) {
+        return false;
+    }
+
+    // Inicia transação
+    $pdo->beginTransaction();
+
+    try {
+        // Apaga dependências em ordem (de baixo para cima)
+        $pdo->prepare("DELETE FROM ficha_poderes WHERE ficha_id = ?")->execute([$ficha_id]);
+        $pdo->prepare("DELETE FROM ficha_equipamentos WHERE ficha_id = ?")->execute([$ficha_id]);
+        $pdo->prepare("DELETE FROM ficha_classes WHERE ficha_id = ?")->execute([$ficha_id]);
+        $pdo->prepare("DELETE FROM ficha_atributos WHERE ficha_id = ?")->execute([$ficha_id]);
+
+        // Agora apaga a ficha
+        $stmt = $pdo->prepare("DELETE FROM fichas WHERE id = :ficha_id AND usuario_id = :usuario_id");
+        $stmt->bindParam(':ficha_id', $ficha_id, PDO::PARAM_INT);
+        $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        // Confirma a transação
+        $pdo->commit();
+        return true;
+
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        return false;
+    }
+}
 
     public function definirAtributos($id_sistema)
     {
@@ -370,18 +465,18 @@ class fichaRepository {
     {
         switch ($pericia) {
             case 'Acrobacia':
+            case 'Cavalgar':
             case 'Furtividade':
             case 'Iniciativa':
             case 'Ladinagem':
             case 'Pilotagem':
+            case 'Pontaria':
             case 'Prestidigitação':
             case 'Reflexos':
                 return 'DES'; // Destreza
 
             case 'Atletismo':
-            case 'Cavalgar':
             case 'Luta':
-            case 'Pontaria':
                 return 'FOR'; // Força
 
             case 'Cura':
@@ -417,6 +512,52 @@ class fichaRepository {
 
             case 'Fortitude':
                 return 'CON'; // Constituição
+
+            default:
+                return null; // Perícia não reconhecida
+        }
+    }
+
+    public function definirAtributoPericiasOP($pericia)
+    {
+        switch ($pericia) {
+            case 'Acrobacia':
+            case 'Crime':
+            case 'Furtividade':
+            case 'Iniciativa':
+            case 'Pilotagem':
+            case 'Pontaria':
+            case 'Reflexos':
+                return 'AGI'; // Destreza
+
+            case 'Atletismo':
+            case 'Luta':
+                return 'FOR'; // Força
+
+            case 'Adestramento':
+            case 'Artes':
+            case 'Diplomacia':
+            case 'Enganacao':
+            case 'Intimidacao':
+            case 'Intuicao':
+            case 'Percepcao':
+            case 'Religião':
+            case 'Vontade':
+                return 'PRE'; // Carisma
+
+            case 'Atualidades':
+            case 'Ciências':
+            case 'Investigacao':
+            case 'Medicina':
+            case 'Ocultismo':
+            case 'Profissão':
+            case 'Sobrevivencia':
+            case 'Tática':
+            case 'Tecnologia':
+                return 'INT'; // Inteligência
+
+            case 'Fortitude':
+                return 'VIG'; // Constituição
 
             default:
                 return null; // Perícia não reconhecida
@@ -475,11 +616,27 @@ class fichaRepository {
         return $resultadoFinal;
     }
 
-    public function AtualizarFicha($ficha_id, $nome, $origem, $pv_atual, $pm_atual, $periciasTexto, $data_nova, $pdo) {
-        $sqlFicha = "UPDATE fichas SET nome = :nome, origem_id = :origem, pv_atual = :pv_atual, pm_atual = :pm_atual, pericias = :pericias, data_ultimo_acesso = :data_nova  
+    public function calcularValorPericiaOP($pericia, $ficha_id)
+    {
+        $resultadoFinal= 0;
+        $atributos = $this->buscarAtributos($ficha_id,$this->pdo);
+        $atributoPadrao = $this->definirAtributoPericias($pericia);
+        foreach ($atributos as $atributo) {
+            if ($atributo['nome'] == $atributoPadrao) {
+                $modificador = floor(($atributo['valor']-10)/2);
+            }
+        }
+
+        $resultadoFinal += $modificador;
+        return $resultadoFinal;
+    }
+
+    public function AtualizarFicha($ficha_id, $nome,$raca, $origem, $pv_atual, $pm_atual, $periciasTexto, $data_nova, $pdo) {
+        $sqlFicha = "UPDATE fichas SET nome = :nome, raca_id = :raca, origem_id = :origem, pv_atual = :pv_atual, pm_atual = :pm_atual, pericias = :pericias, data_ultimo_acesso = :data_nova  
         WHERE id = :ficha_id";
         $stmtFicha = $pdo->prepare($sqlFicha);
         $stmtFicha->bindParam(':nome',$nome,PDO::PARAM_STR);
+        $stmtFicha->bindParam(':raca',$raca,PDO::PARAM_INT);
         $stmtFicha->bindParam(':origem',$origem,PDO::PARAM_INT);
         $stmtFicha->bindParam(':pv_atual',$pv_atual,PDO::PARAM_INT);
         $stmtFicha->bindParam(':pm_atual',$pm_atual,PDO::PARAM_INT);
@@ -487,6 +644,34 @@ class fichaRepository {
         $stmtFicha->bindParam(':ficha_id',$ficha_id,PDO::PARAM_INT);
         $stmtFicha->bindParam(':data_nova',$data_nova,PDO::PARAM_STR);
         return $stmtFicha->execute();
+    }
+
+
+    public function criarAtibutos($ficha_id, $atributos, $pdo) {
+        $verificaSql = "SELECT COUNT(*) FROM ficha_atributos WHERE ficha_id = :ficha_id AND nome = :nome";
+        $verificaStatement = $pdo->prepare($verificaSql);
+        
+        $sqlFicha = "INSERT INTO ficha_atributos (ficha_id, nome, valor)
+        VALUES (:ficha_id, :nome, :valor)";
+        $stmtFicha = $pdo->prepare($sqlFicha);
+
+        foreach ($atributos as $nome => $valor) {
+            $verificaStatement->bindParam(':ficha_id', $ficha_id, PDO::PARAM_INT);
+            $verificaStatement->bindParam(':nome', $nome, PDO::PARAM_STR);
+            $verificaStatement->execute();
+            $atributosExistente = $verificaStatement->fetchColumn();
+
+            if ($atributosExistente == 0) {
+                $stmtFicha->bindValue(':ficha_id',$ficha_id,PDO::PARAM_INT);
+                $stmtFicha->bindValue(':nome',$nome,PDO::PARAM_STR);
+                $stmtFicha->bindValue(':valor',$valor,PDO::PARAM_INT);
+                if (!$stmtFicha->execute()) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     public function atualizarAtributos($ficha_id, $atributos, $pdo) {

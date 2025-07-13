@@ -43,7 +43,7 @@ class classRepository{
     public function buscarClassesPorSistema($id, $pdo) {
         $sql = "SELECT * FROM classes_kits WHERE sistema_id = :id";
         $stmt = $pdo->prepare($sql);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
         $atributos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
@@ -52,13 +52,18 @@ class classRepository{
 
     public function adicionarClasse ($sistema_id, $nome, $descricao, $dado_vida, $pdo)
     {
-        $verificaSql = "SELECT COUNT(*) FROM classes_kits WHERE sistema_id = :sistema_id AND nome = :nome";
+        $verificaSql = "SELECT id FROM classes_kits WHERE sistema_id = :sistema_id AND nome = :nome";
         $verificaStatement = $pdo->prepare($verificaSql);
         $verificaStatement->bindParam(':sistema_id', $sistema_id, PDO::PARAM_INT);
         $verificaStatement->bindParam(':nome', $nome, PDO::PARAM_STR);
-        if ($verificaStatement->fetchColumn() !=0) {
-            return false;
+        $verificaStatement->execute();
+        $classeExistente = $verificaStatement->fetch(PDO::FETCH_ASSOC);
+
+        if ($classeExistente) {
+            return $classeExistente['id'];
         }
+
+
         $sql = "INSERT INTO classes_kits (sistema_id, nome, descricao, dado_vida) 
         VALUES (:sistema_id, :nome, :descricao, :dado_vida)";
         $statement = $pdo->prepare($sql);
@@ -71,13 +76,16 @@ class classRepository{
 
     public function adicionarPMPorNivel($classe_id, $pm, $pdo) 
     {
-        $verificaSql = "SELECT COUNT(*) FROM classe_pm_progressao 
+        $verificaSql = "SELECT id FROM classe_pm_progressao 
         WHERE classe_id = :classe_id";
         $verificaStatement = $pdo->prepare($verificaSql);
         $verificaStatement->bindParam(':classe_id', $classe_id, PDO::PARAM_INT);
-        if ($verificaStatement->fetchColumn() !=0) {
-            return false;
+        $verificaStatement->execute();
+        $progrssaoExistente = $verificaStatement->fetch(PDO::FETCH_ASSOC);
+        if ($progrssaoExistente) {
+            return true;
         }
+
         $sql = "INSERT INTO classe_pm_progressao (classe_id, nivel, pm)
         VALUES (:classe_id, 1, :pm)";
         $statement = $pdo->prepare($sql);

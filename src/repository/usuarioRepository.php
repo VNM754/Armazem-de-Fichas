@@ -93,4 +93,16 @@ class usuarioRepository
         $statement->execute();
 
     }
+
+    public function atualizarPerfil($usuario_id, $nome, $email, $senha, $pdo){
+        $sql = "UPDATE usuarios SET nome = :nome, email = :email, senha_hash = :senha 
+        WHERE id = :usuario_id";
+        $statementUpdate = $pdo->prepare($sql);
+        $statementUpdate->bindParam(':nome', $nome, PDO::PARAM_STR);
+        $statementUpdate->bindParam(':email', $email, PDO::PARAM_STR);
+        $statementUpdate->bindParam(':senha', $senha, PDO::PARAM_STR);
+        $statementUpdate->bindParam(':usuario_id', $usuario_id, PDO::PARAM_STR);
+        return $statementUpdate->execute();
+        
+    }
 }
